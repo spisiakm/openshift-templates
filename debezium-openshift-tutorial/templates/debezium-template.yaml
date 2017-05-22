@@ -72,7 +72,7 @@ objects:
         - zookeeper
         from:
           kind: ImageStreamTag
-          name: zookeeper:latest
+          name: zookeeper:0.5
           namespace: jpechane
       type: ImageChange
 - kind: DeploymentConfig
@@ -140,7 +140,7 @@ objects:
         - kafka
         from:
           kind: ImageStreamTag
-          name: kafka:latest
+          name: kafka:0.5
           namespace: jpechane
       type: ImageChange
 - kind: DeploymentConfig
@@ -214,7 +214,7 @@ objects:
         - connect
         from:
           kind: ImageStreamTag
-          name: connect:latest
+          name: connect:0.5
           namespace: jpechane
       type: ImageChange
 - kind: Service
