@@ -1,0 +1,292 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: debezium
+objects:
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    labels:
+      app: zookeeper
+    name: zookeeper
+  spec:
+    replicas: 1
+    selector:
+      app: zookeeper
+      deploymentconfig: zookeeper
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: zookeeper
+          deploymentconfig: zookeeper
+      spec:
+        containers:
+        - name: zookeeper
+          env:
+          - name: KAFKA_OPTS
+            value: -javaagent:/opt/agent-bond/agent-bond.jar=jolokia{{host=*,port=8778,protocol=https}}
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 2181
+            name: client
+            protocol: TCP
+          - containerPort: 2888
+            name: follower
+            protocol: TCP
+          - containerPort: 3888
+            name: election
+            protocol: TCP
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /zookeeper/data
+            name: zookeeper-volume-1
+          - mountPath: /zookeeper/logs
+            name: zookeeper-volume-2
+          readinessProbe:
+            tcpSocket:
+              port: 2181
+            initialDelaySeconds: 45
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: zookeeper-volume-1
+        - emptyDir: {}
+          name: zookeeper-volume-2
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - zookeeper
+        from:
+          kind: ImageStreamTag
+          name: zookeeper:latest
+          namespace: jpechane
+      type: ImageChange
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    labels:
+      app: kafka
+    name: kafka
+  spec:
+    replicas: 1
+    selector:
+      app: kafka
+      deploymentconfig: kafka
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: kafka
+          deploymentconfig: kafka
+      spec:
+        containers:
+        - name: kafka
+          env:
+          - name: ZOOKEEPER_CONNECT
+            value: zookeeper:2181
+          - name: KAFKA_OPTS
+            value: -javaagent:/opt/agent-bond/agent-bond.jar=jolokia{{host=*,port=8778,protocol=https}}
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 9092
+            name: kafka
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /kafka/data
+            name: kafka-volume-1
+          - mountPath: /kafka/logs
+            name: kafka-volume-2
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 45
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: kafka-volume-1
+        - emptyDir: {}
+          name: kafka-volume-2
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - kafka
+        from:
+          kind: ImageStreamTag
+          name: kafka:latest
+          namespace: jpechane
+      type: ImageChange
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    labels:
+      app: connect
+    name: connect
+  spec:
+    replicas: 1
+    selector:
+      app: connect
+      deploymentconfig: connect
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: connect
+          deploymentconfig: connect
+      spec:
+        containers:
+        - name: connect
+          env:
+          - name: BOOTSTRAP_SERVERS
+            value: kafka:9092
+          - name: CONFIG_STORAGE_TOPIC
+            value: debezium-storage
+          - name: OFFSET_STORAGE_TOPIC
+            value: debezium-offset
+          - name: KAFKA_OPTS
+            value: -javaagent:/opt/agent-bond/agent-bond.jar=jolokia{{host=*,port=8778,protocol=https}}
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8083
+            protocol: TCP
+            name: api
+          - containerPort: 8778
+            protocol: TCP
+            name: jolokia
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /connect/data
+            name: connect-volume-1
+          - mountPath: /connect/logs
+            name: connect-volume-2
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8083
+              scheme: HTTP
+            initialDelaySeconds: 45
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: connect-volume-1
+        - emptyDir: {}
+          name: connect-volume-2
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - connect
+        from:
+          kind: ImageStreamTag
+          name: connect:latest
+          namespace: jpechane
+      type: ImageChange
+- kind: Service
+  apiVersion: v1
+  metadata:
+    labels:
+      app: kafka
+    name: kafka
+  spec:
+    ports:
+    - name: kafka
+      port: 9092
+      protocol: TCP
+      targetPort: 9092
+    selector:
+      app: kafka
+      deploymentconfig: kafka
+    sessionAffinity: None
+    type: ClusterIP
+- kind: Service
+  apiVersion: v1
+  metadata:
+    labels:
+      app: zookeeper
+    name: zookeeper
+  spec:
+    ports:
+    - name: client
+      port: 2181
+      protocol: TCP
+      targetPort: 2181
+    - name: follower
+      port: 2888
+      protocol: TCP
+      targetPort: 2888
+    - name: election
+      port: 3888
+      protocol: TCP
+      targetPort: 3888
+    selector:
+      app: zookeeper
+      deploymentconfig: zookeeper
+    sessionAffinity: None
+    type: ClusterIP
+- kind: Service
+  apiVersion: v1
+  metadata:
+    labels:
+      app: connect
+    name: connect
+  spec:
+    ports:
+    - name: connect-api
+      port: 8083
+      protocol: TCP
+      targetPort: 8083
+    selector:
+        app: connect
+        deploymentconfig: connect
+    sessionAffinity: None
+    type: ClusterIP
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: connect
+    labels:
+      app: connect
+  spec:
+    to:
+      kind: Service
+      name: connect
+      weight: 100
+    port:
+      targetPort: 8083
+    wildcardPolicy: None

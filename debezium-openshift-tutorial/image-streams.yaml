@@ -1,0 +1,42 @@
+kind: List
+apiVersion: v1
+metadata:
+  name: "debezium-image-streams"
+  annotations:
+    description: ImageStream definitions for Debezium tutorial and demos
+items:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: zookeeper
+  spec:
+    dockerImageRepository: debezium/zookeeper
+    tags:
+      - name: "0.5"
+      - name: latest
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: kafka
+  spec:
+    dockerImageRepository: debezium/kafka
+    tags:
+      - name: "0.5"
+      - name: latest
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: connect
+  spec:
+    dockerImageRepository: debezium/connect
+    tags:
+      - name: "0.5"
+      - name: latest
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: mysql
+  spec:
+    dockerImageRepository: jpechane/debezium-example-mysql
+    tags:
+      - name: "5.7"
