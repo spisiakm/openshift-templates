@@ -112,3 +112,18 @@ INFO: Connected to mysql:3306 at 7759b1b6-3ecb-11e7-8440-32e44caed099:1-14 (sid:
 .
 .
 ```
+## Interaction with environment
+*Note: Please find correct pod names by calling* `oc get pods`
+- Listen for change events
+```
+oc exec -it kafka-1-<...> -- /kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic dbserver1.inventory.customers --from-beginning
+```
+- Connect to the source MySQL database
+```
+oc exec -it mysql-1-<...> -- /opt/rh/rh-mysql57/root/usr/bin/mysql -uroot -hlocalhost inventory
+```
+### Connection to JMX console
+All Kafka related pods have a JMX console accessible from the OpenShift console
+- Got to the OpenShift console
+- Select one of the pods
+- Click on **Open Java Console** link
