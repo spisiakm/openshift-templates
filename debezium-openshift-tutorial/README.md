@@ -28,7 +28,7 @@ imagestream "mysql" created
 ### Deploy a MySQL instance
 The MySQL image is derived from [MySQL CentOS image](https://hub.docker.com/r/centos/mysql-57-centos7/) and has enabled replication and contains a prepopulate database script. Deploy the MySQL instance using command
 ```
-oc process -f https://raw.githubusercontent.com/jpechane/openshift-templates/master/debezium-openshift-tutorial/templates/mysql-ephemeral-template.json -p MYSQL_USER=mysqluser -p MYSQL_PASSWORD=mysqlpw -p MYSQL_ROOT_PASSWORD=debezium -p MYSQL_MASTER_USER=debezium -p MYSQL_MASTER_PASSWORD=dbz -p MYSQL_DATABASE=inventory -p NAMESPACE=$(oc project -q) | oc create -f -
+oc process -f https://raw.githubusercontent.com/jpechane/openshift-templates/master/debezium-openshift-tutorial/templates/mysql-ephemeral-template.json MYSQL_USER=mysqluser MYSQL_PASSWORD=mysqlpw MYSQL_ROOT_PASSWORD=debezium MYSQL_MASTER_USER=debezium MYSQL_MASTER_PASSWORD=dbz MYSQL_DATABASE=inventory NAMESPACE=$(oc project -q) | oc create -f -
 ```
 The result of the operation should be
 ```
