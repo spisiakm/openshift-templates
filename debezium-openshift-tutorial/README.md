@@ -4,7 +4,7 @@ This set of templates allows the user to emulate the workflow defined in [Debezi
 
 ## Prerequisities
 - `oc` - [OpenShift client](https://github.com/openshift/origin/releases)
-- A running Openshift instance, obtained on of
+- A running Openshift instance, obtained via
     - [Cluster installation](https://docs.openshift.org/latest/install_config/index.html)
     - [Local cluster instance](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) - `oc cluster up`
     - a [Minishift](https://github.com/minishift/minishift) local instance
