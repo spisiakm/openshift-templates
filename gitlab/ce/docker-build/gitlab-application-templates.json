@@ -266,7 +266,7 @@
                                 			"-s",
                                 			"-XPOST",
                                 			"-Flogin=root",
-                                			"-Fpassword=$GITLAB_ROOT_PASSWORD",
+                                			"-Fpassword=${GITLAB_ROOT_PASSWORD}",
                                 			"http://localhost:80/api/v3/session"
                                 			]
                                 	}
